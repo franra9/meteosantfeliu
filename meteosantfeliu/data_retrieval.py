@@ -65,17 +65,41 @@ def fetch_data(year, month):
             high_wind = parts[10]
             high_wind_time = parts[11]
             dom_dir = parts[12]
+            if len(parts)==14:
+                mean_humidity = parts[13]
+            else:
+                mean_humidity=0
+
+            # Split Dom Dir into Dom Dir and Mean Barometric Pressure
+            numeric_part = ''.join(filter(str.isdigit or ".", dom_dir))
+            non_numeric_part = ''.join(filter(lambda x: not x.isdigit() or not ".", dom_dir))
+
+            mean_barometric_pressure = numeric_part if numeric_part else "0"
+            dom_dir_cleaned = non_numeric_part.strip()
+
+
+            # Separate the MBP into integer and decimal parts
+            if numeric_part:
+                mean_barometric_pressure = f"{numeric_part[:-2]}.{numeric_part[-2:]}"
+            else:
+                mean_barometric_pressure = "0.00"
+            dom_dir_cleaned = non_numeric_part.strip()
+
+            dom_dir_cleaned = non_numeric_part.strip().replace(".", "")
+
+            # Add a full date column (format: YYYY-MM-DD)
+            full_date = f"20{year}-{month}-{int(day):02d}"
             daily_data.append([
-                day, temp_mean, temp_high, high_time, temp_low, low_time,
+                full_date, day, temp_mean, temp_high, high_time, temp_low, low_time,
                 heat_deg_days, cool_deg_days, rain, wind_speed,
-                high_wind, high_wind_time, dom_dir
+                high_wind, high_wind_time, dom_dir_cleaned, mean_barometric_pressure, mean_humidity
             ])
 
     # Create a DataFrame
     columns = [
-        "Day", "Mean Temp", "High Temp", "High Time", "Low Temp", "Low Time",
+        "Full Date", "Day", "Mean Temp", "High Temp", "High Time", "Low Temp", "Low Time",
         "Heat Deg Days", "Cool Deg Days", "Rain (mm)", "Avg Wind Speed (km/h)",
-        "High Wind", "High Wind Time", "Dom Dir"
+        "High Wind", "High Wind Time", "Dom Dir", "Mean Barometric Pressure", "Mean Humidity"
     ]
     df = pd.DataFrame(daily_data, columns=columns)
 
